@@ -5,18 +5,21 @@ using UnityEngine.Events;
 namespace TMPro
 {
     [System.Serializable] public class DialogueEvent : UnityEvent { }
-    [System.Serializable] public class EmotionEvent : UnityEvent<string> { }
+    [System.Serializable] public class ChangeSomething : UnityEvent<string> { }
     
-
     public class CoolTMP : TextMeshProUGUI
     {
         public CoolTMP instance;
 
         public float textSpeed;
 
-        public EmotionEvent onEmotionChange;
+        public ChangeSomething onEmotionChange;
+        public ChangeSomething onPoseChange;
+
         public DialogueEvent onDialogueFinish;
         public DialogueEvent nextDialogueBlock;
+        public DialogueEvent newDialogue;
+        
 
         protected override void OnEnable()
         {
@@ -43,8 +46,12 @@ namespace TMPro
 
             bool isCustomTag(string tag)
             {
+                // /pose/ = char portrait change /emote/ = sprite changes
+                // /new/ = new dialogue available /c/ = continue             
+
                 //add more custom tags with Shannon and pals
-                return tag.StartsWith("emote=") || tag.StartsWith("next");
+                return tag.StartsWith("emote=") || tag.StartsWith("pose=") 
+                    || tag.StartsWith("c") || tag.StartsWith("new") ;
             }
 
             text = displayText;
@@ -77,16 +84,26 @@ namespace TMPro
 
                 WaitForSeconds CheckTag(string tag)
                 {
-                    if(tag.Length >0)
+                    if(tag.Length > 0)
                     {
                         if (tag.StartsWith("emote="))
                         {
                             onEmotionChange.Invoke(tag.Split('=')[1]);
                         }
 
-                        else if(tag.StartsWith("next"))
+                        else if (tag.StartsWith("pose="))
+                        {
+                            onPoseChange.Invoke(tag.Split('=')[1]);
+                        }
+
+                        else if(tag.StartsWith("c"))
                         {
                             nextDialogueBlock.Invoke();
+                        }
+
+                        else if(tag.StartsWith("new"))
+                        {
+                            newDialogue.Invoke();
                         }
                         //else if more tags              
                     }
